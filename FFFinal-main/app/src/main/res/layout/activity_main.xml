@@ -10,26 +10,6 @@
     android:background="#f4f4f4"
     tools:context=".MainActivity">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_weight="8">
-
-        <EditText
-            android:id="@+id/editText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter the Address." />
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Search" />
-
-    </LinearLayout>
-
     <fragment
         android:id="@+id/googleMap"
         android:layout_width="match_parent"
@@ -41,6 +21,28 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/editSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="검색어를 입력하세요." />
+
+            <ListView
+                android:id="@+id/listView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="#999999"
+                android:dividerHeight="1dp">
+            </ListView>
+
+        </LinearLayout>
+
 
         //상단 구해조 부분
         <LinearLayout

@@ -15,10 +15,19 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-import android.location.Address;
-import android.location.Geocoder;
-import android.widget.Button;
+
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.MotionEvent;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.ListView;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ScheduledExecutorService;
 
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -30,11 +39,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.io.IOException;
-import java.util.List;
-
-
-
+import java.net.URI;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -53,11 +58,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private long backKeyPressedTime = 0;
     private Toast toast;
+    private View view;
+    private AlertDialog.Builder builder;
 
-    private Geocoder geocoder;
-    private Button button;
-    private EditText editText;
-    private GoogleMap mMap;
+    private List<String> list;          // 데이터를 넣은 리스트변수
+    private ListView listView;          // 검색을 보여줄 리스트변수
+    private EditText editSearch;        // 검색어를 입력할 Input 창
+    private SearchAdapter adapter;      // 리스트뷰에 연결할 아답터
+    private ArrayList<String> arraylist;
 
 
     @SuppressLint("WrongViewCast")
@@ -66,16 +74,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editText = (EditText) findViewById(R.id.editText);
-        button=(Button)findViewById(R.id.button);
-
         fragmentManager = getFragmentManager();
         mapFragment = (MapFragment)fragmentManager.findFragmentById(R.id.googleMap);
         mapFragment.getMapAsync(this);
 
         drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         drawerView = (View)findViewById(R.id.drawer);
-
 
         //메뉴 소환 버튼
         layout_1 = findViewById(R.id.layout_1);
@@ -149,6 +153,96 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 alert.show();
             }
         });
+
+        editSearch = (EditText) findViewById(R.id.editSearch);
+        listView = (ListView) findViewById(R.id.listView);
+
+        // 리스트를 생성한다.
+        list = new ArrayList<String>();
+
+        // 검색에 사용할 데이터을 미리 저장한다.
+        settingList();
+
+        // 리스트의 모든 데이터를 arraylist에 복사한다.// list 복사본을 만든다.
+        arraylist = new ArrayList<String>();
+        arraylist.addAll(list);
+
+        // 리스트에 연동될 아답터를 생성한다.
+        adapter = new SearchAdapter(list, this);
+
+        // 리스트뷰에 아답터를 연결한다.
+        listView.setAdapter(adapter);
+
+        // input창에 검색어를 입력시 "addTextChangedListener" 이벤트 리스너를 정의한다.
+        editSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // input창에 문자를 입력할때마다 호출된다.
+                // search 메소드를 호출한다.
+                String text = editSearch.getText().toString();
+                search(text);
+            }
+        });
+    }
+
+    // 검색을 수행하는 메소드
+    public void search(String charText) {
+
+        // 문자 입력시마다 리스트를 지우고 새로 뿌려준다.
+        list.clear();
+
+        // 문자 입력이 없을때는 모든 데이터를 보여준다.
+        if (charText.length() == 0) {
+            list.addAll(arraylist);
+        }
+        // 문자 입력을 할때..
+        else
+        {
+            // 리스트의 모든 데이터를 검색한다.
+            for(int i = 0;i < arraylist.size(); i++)
+            {
+                // arraylist의 모든 데이터에 입력받은 단어(charText)가 포함되어 있으면 true를 반환한다.
+                if (arraylist.get(i).toLowerCase().contains(charText))
+                {
+                    // 검색된 데이터를 리스트에 추가한다.
+                    list.add(arraylist.get(i));
+                }
+            }
+        }
+        // 리스트 데이터가 변경되었으므로 아답터를 갱신하여 검색된 데이터를 화면에 보여준다.
+        adapter.notifyDataSetChanged();
+    }
+
+    // 검색에 사용될 데이터를 리스트에 추가한다.
+    private void settingList(){
+        list.add("순헌관");
+        list.add("행파교수회관");
+        list.add("수련교수회관");
+        list.add("진리관");
+        list.add("명신관");
+        list.add("명신신관");
+        list.add("행정관");
+        list.add("학생회관");
+        list.add("숙명여자대학교 대강당");
+        list.add("프라임관");
+        list.add("르네상스");
+        list.add("음악대학");
+        list.add("사회교육관");
+        list.add("약학대학");
+        list.add("미술대학");
+        list.add("백주년기념관");
+        list.add("중앙도서관");
+        list.add("과학관");
+
     }
 
     DrawerLayout.DrawerListener listener = new DrawerLayout.DrawerListener() {
@@ -291,77 +385,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 17));
 
-    }
-
-
-    @Override
-    public void onMapReady(final GoogleMap googleMap) {
-        mMap = googleMap;
-        geocoder = new Geocoder(this);
-
-        // 맵 터치 이벤트 구현 //
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
-            @Override
-            public void onMapClick(LatLng point) {
-                MarkerOptions mOptions = new MarkerOptions();
-                // 마커 타이틀
-                mOptions.title("마커 좌표");
-                Double latitude = point.latitude; // 위도
-                Double longitude = point.longitude; // 경도
-                // 마커의 스니펫(간단한 텍스트) 설정
-                mOptions.snippet(latitude.toString() + ", " + longitude.toString());
-                // LatLng: 위도 경도 쌍을 나타냄
-                mOptions.position(new LatLng(latitude, longitude));
-                // 마커(핀) 추가
-                googleMap.addMarker(mOptions);
-            }
-        });
-        ////////////////////
-
-        // 버튼 이벤트
-        button.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                String str=editText.getText().toString();
-                List<Address> addressList = null;
-                try {
-                    // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
-                    addressList = geocoder.getFromLocationName(
-                            str, // 주소
-                            10); // 최대 검색 결과 개수
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                System.out.println(addressList.get(0).toString());
-                // 콤마를 기준으로 split
-                String []splitStr = addressList.get(0).toString().split(",");
-                String address = splitStr[0].substring(splitStr[0].indexOf("\"") + 1,splitStr[0].length() - 2); // 주소
-                System.out.println(address);
-
-                String latitude = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
-                String longitude = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
-                System.out.println(latitude);
-                System.out.println(longitude);
-
-                // 좌표(위도, 경도) 생성
-                LatLng point = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
-                // 마커 생성
-                MarkerOptions mOptions2 = new MarkerOptions();
-                mOptions2.title("search result");
-                mOptions2.snippet(address);
-                mOptions2.position(point);
-                // 마커 추가
-                mMap.addMarker(mOptions2);
-                // 해당 좌표로 화면 줌
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point,15));
-            }
-        });
-        ////////////////////
-        LatLng location = new LatLng(37.545133, 126.964629);
-        mMap.addMarker(new MarkerOptions().position(location).title("Marker in"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
 
     }
 
@@ -371,9 +394,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if(marker.getTitle().equals("프라임관"))
         {
-            Intent intent = new Intent(MainActivity.this, PopupActivity.class);
-            startActivity(intent);
+            final String[] words = new String[] {"B2층", "B1층", "1층", "2층", "3층"};
+
+
+                new AlertDialog.Builder(this).setTitle("층수를 선택하세요.").setSingleChoiceItems(words, -1, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(MainActivity.this, "words : " + words[which], Toast.LENGTH_SHORT).show(); } }).setNeutralButton("closed",null).setPositiveButton("OK",null).setNegativeButton("cancel", null).show();
+
+
         }
         return true;
     }
+
+
 }
